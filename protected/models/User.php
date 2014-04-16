@@ -45,6 +45,7 @@ class User extends CActiveRecord
             array('name, batch_id, email, password, group_id, roles', 'required'),
             array('active', 'numerical', 'integerOnly' => true),
             array('name, email', 'length', 'max' => 100),
+            array('email', 'email'),
             array('batch_id, group_id', 'length', 'max' => 20),
             array('birthplace, phone, handphone, hall', 'length', 'max' => 50),
             array('password', 'length', 'max' => 255),
