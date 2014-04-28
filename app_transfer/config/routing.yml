@@ -1,0 +1,4 @@
+cad_transfer:
+    resource: "@CADTransferBundle/Resources/config/routing.yml"
+    prefix:   /
+

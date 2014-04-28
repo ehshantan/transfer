@@ -1,0 +1,7 @@
+parameters:
+#    cad_transfer.example.class: CAD\TransferBundle\Example
+
+services:
+#    cad_transfer.example:
+#        class: %cad_transfer.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]
