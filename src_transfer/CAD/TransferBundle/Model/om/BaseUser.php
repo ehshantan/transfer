@@ -10,18 +10,14 @@ use \Exception;
 use \PDO;
 use \Persistent;
 use \Propel;
-use \PropelCollection;
 use \PropelDateTime;
 use \PropelException;
-use \PropelObjectCollection;
 use \PropelPDO;
 use CAD\TransferBundle\Model\Batch;
 use CAD\TransferBundle\Model\BatchQuery;
 use CAD\TransferBundle\Model\Group;
 use CAD\TransferBundle\Model\GroupQuery;
 use CAD\TransferBundle\Model\User;
-use CAD\TransferBundle\Model\UserCategoryJournal;
-use CAD\TransferBundle\Model\UserCategoryJournalQuery;
 use CAD\TransferBundle\Model\UserPeer;
 use CAD\TransferBundle\Model\UserQuery;
 
@@ -142,12 +138,6 @@ abstract class BaseUser extends BaseObject implements Persistent
     protected $aBatch;
 
     /**
-     * @var        PropelObjectCollection|UserCategoryJournal[] Collection to store aggregation of UserCategoryJournal objects.
-     */
-    protected $collUserCategoryJournals;
-    protected $collUserCategoryJournalsPartial;
-
-    /**
      * Flag to prevent endless save loop, if this object is referenced
      * by another object which falls in this transaction.
      * @var        boolean
@@ -166,12 +156,6 @@ abstract class BaseUser extends BaseObject implements Persistent
      * @var        boolean
      */
     protected $alreadyInClearAllReferencesDeep = false;
-
-    /**
-     * An array of objects scheduled for deletion.
-     * @var        PropelObjectCollection
-     */
-    protected $userCategoryJournalsScheduledForDeletion = null;
 
     /**
      * Applies default values to this object.
@@ -823,8 +807,6 @@ abstract class BaseUser extends BaseObject implements Persistent
 
             $this->aGroup = null;
             $this->aBatch = null;
-            $this->collUserCategoryJournals = null;
-
         } // if (deep)
     }
 
@@ -966,23 +948,6 @@ abstract class BaseUser extends BaseObject implements Persistent
                 }
                 $affectedRows += 1;
                 $this->resetModified();
-            }
-
-            if ($this->userCategoryJournalsScheduledForDeletion !== null) {
-                if (!$this->userCategoryJournalsScheduledForDeletion->isEmpty()) {
-                    UserCategoryJournalQuery::create()
-                        ->filterByPrimaryKeys($this->userCategoryJournalsScheduledForDeletion->getPrimaryKeys(false))
-                        ->delete($con);
-                    $this->userCategoryJournalsScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collUserCategoryJournals !== null) {
-                foreach ($this->collUserCategoryJournals as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
             }
 
             $this->alreadyInSave = false;
@@ -1223,15 +1188,6 @@ abstract class BaseUser extends BaseObject implements Persistent
             }
 
 
-            if ($this->collUserCategoryJournals !== null) {
-                foreach ($this->collUserCategoryJournals as $referrerFK) {
-                    if (!$referrerFK->validate($columns)) {
-                        $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
-                    }
-                }
-            }
-
-
             $this->alreadyInValidation = false;
         }
 
@@ -1376,15 +1332,6 @@ abstract class BaseUser extends BaseObject implements Persistent
                     $includeLazyLoadColumns,
                     $alreadyDumpedObjects,
                     true
-                );
-            }
-            if (null !== $this->collUserCategoryJournals) {
-                $result['UserCategoryJournals'] = $this->collUserCategoryJournals->toArray(
-                    null,
-                    true,
-                    $keyType,
-                    $includeLazyLoadColumns,
-                    $alreadyDumpedObjects
                 );
             }
         }
@@ -1612,12 +1559,6 @@ abstract class BaseUser extends BaseObject implements Persistent
             // store object hash to prevent cycle
             $this->startCopy = true;
 
-            foreach ($this->getUserCategoryJournals() as $relObj) {
-                if ($relObj !== $this) { // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addUserCategoryJournal($relObj->copy($deepCopy));
-                }
-            }
-
             //unflag object copy
             $this->startCopy = false;
         } // if ($deepCopy)
@@ -1772,287 +1713,6 @@ abstract class BaseUser extends BaseObject implements Persistent
         return $this->aBatch;
     }
 
-
-    /**
-     * Initializes a collection based on the name of a relation.
-     * Avoids crafting an 'init[$relationName]s' method name
-     * that wouldn't work when StandardEnglishPluralizer is used.
-     *
-     * @param string $relationName The name of the relation to initialize
-     * @return void
-     */
-    public function initRelation($relationName)
-    {
-        if ('UserCategoryJournal' == $relationName) {
-            $this->initUserCategoryJournals();
-        }
-    }
-
-    /**
-     * Clears out the collUserCategoryJournals collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return User The current object (for fluent API support)
-     * @see        addUserCategoryJournals()
-     */
-    public function clearUserCategoryJournals()
-    {
-        $this->collUserCategoryJournals = null; // important to set this to null since that means it is uninitialized
-        $this->collUserCategoryJournalsPartial = null;
-
-        return $this;
-    }
-
-    /**
-     * reset is the collUserCategoryJournals collection loaded partially
-     *
-     * @return void
-     */
-    public function resetPartialUserCategoryJournals($v = true)
-    {
-        $this->collUserCategoryJournalsPartial = $v;
-    }
-
-    /**
-     * Initializes the collUserCategoryJournals collection.
-     *
-     * By default this just sets the collUserCategoryJournals collection to an empty array (like clearcollUserCategoryJournals());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param boolean $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initUserCategoryJournals($overrideExisting = true)
-    {
-        if (null !== $this->collUserCategoryJournals && !$overrideExisting) {
-            return;
-        }
-        $this->collUserCategoryJournals = new PropelObjectCollection();
-        $this->collUserCategoryJournals->setModel('UserCategoryJournal');
-    }
-
-    /**
-     * Gets an array of UserCategoryJournal objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this User is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @return PropelObjectCollection|UserCategoryJournal[] List of UserCategoryJournal objects
-     * @throws PropelException
-     */
-    public function getUserCategoryJournals($criteria = null, PropelPDO $con = null)
-    {
-        $partial = $this->collUserCategoryJournalsPartial && !$this->isNew();
-        if (null === $this->collUserCategoryJournals || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collUserCategoryJournals) {
-                // return empty collection
-                $this->initUserCategoryJournals();
-            } else {
-                $collUserCategoryJournals = UserCategoryJournalQuery::create(null, $criteria)
-                    ->filterByUser($this)
-                    ->find($con);
-                if (null !== $criteria) {
-                    if (false !== $this->collUserCategoryJournalsPartial && count($collUserCategoryJournals)) {
-                        $this->initUserCategoryJournals(false);
-
-                        foreach ($collUserCategoryJournals as $obj) {
-                            if (false == $this->collUserCategoryJournals->contains($obj)) {
-                                $this->collUserCategoryJournals->append($obj);
-                            }
-                        }
-
-                        $this->collUserCategoryJournalsPartial = true;
-                    }
-
-                    $collUserCategoryJournals->getInternalIterator()->rewind();
-
-                    return $collUserCategoryJournals;
-                }
-
-                if ($partial && $this->collUserCategoryJournals) {
-                    foreach ($this->collUserCategoryJournals as $obj) {
-                        if ($obj->isNew()) {
-                            $collUserCategoryJournals[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collUserCategoryJournals = $collUserCategoryJournals;
-                $this->collUserCategoryJournalsPartial = false;
-            }
-        }
-
-        return $this->collUserCategoryJournals;
-    }
-
-    /**
-     * Sets a collection of UserCategoryJournal objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param PropelCollection $userCategoryJournals A Propel collection.
-     * @param PropelPDO $con Optional connection object
-     * @return User The current object (for fluent API support)
-     */
-    public function setUserCategoryJournals(PropelCollection $userCategoryJournals, PropelPDO $con = null)
-    {
-        $userCategoryJournalsToDelete = $this->getUserCategoryJournals(new Criteria(), $con)->diff(
-            $userCategoryJournals
-        );
-
-
-        $this->userCategoryJournalsScheduledForDeletion = $userCategoryJournalsToDelete;
-
-        foreach ($userCategoryJournalsToDelete as $userCategoryJournalRemoved) {
-            $userCategoryJournalRemoved->setUser(null);
-        }
-
-        $this->collUserCategoryJournals = null;
-        foreach ($userCategoryJournals as $userCategoryJournal) {
-            $this->addUserCategoryJournal($userCategoryJournal);
-        }
-
-        $this->collUserCategoryJournals = $userCategoryJournals;
-        $this->collUserCategoryJournalsPartial = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns the number of related UserCategoryJournal objects.
-     *
-     * @param Criteria $criteria
-     * @param boolean $distinct
-     * @param PropelPDO $con
-     * @return int             Count of related UserCategoryJournal objects.
-     * @throws PropelException
-     */
-    public function countUserCategoryJournals(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
-    {
-        $partial = $this->collUserCategoryJournalsPartial && !$this->isNew();
-        if (null === $this->collUserCategoryJournals || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collUserCategoryJournals) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getUserCategoryJournals());
-            }
-            $query = UserCategoryJournalQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterByUser($this)
-                ->count($con);
-        }
-
-        return count($this->collUserCategoryJournals);
-    }
-
-    /**
-     * Method called to associate a UserCategoryJournal object to this object
-     * through the UserCategoryJournal foreign key attribute.
-     *
-     * @param    UserCategoryJournal $l UserCategoryJournal
-     * @return User The current object (for fluent API support)
-     */
-    public function addUserCategoryJournal(UserCategoryJournal $l)
-    {
-        if ($this->collUserCategoryJournals === null) {
-            $this->initUserCategoryJournals();
-            $this->collUserCategoryJournalsPartial = true;
-        }
-
-        if (!in_array(
-            $l,
-            $this->collUserCategoryJournals->getArrayCopy(),
-            true
-        )
-        ) { // only add it if the **same** object is not already associated
-            $this->doAddUserCategoryJournal($l);
-
-            if ($this->userCategoryJournalsScheduledForDeletion and $this->userCategoryJournalsScheduledForDeletion->contains(
-                    $l
-                )
-            ) {
-                $this->userCategoryJournalsScheduledForDeletion->remove(
-                    $this->userCategoryJournalsScheduledForDeletion->search($l)
-                );
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param    UserCategoryJournal $userCategoryJournal The userCategoryJournal object to add.
-     */
-    protected function doAddUserCategoryJournal($userCategoryJournal)
-    {
-        $this->collUserCategoryJournals[] = $userCategoryJournal;
-        $userCategoryJournal->setUser($this);
-    }
-
-    /**
-     * @param    UserCategoryJournal $userCategoryJournal The userCategoryJournal object to remove.
-     * @return User The current object (for fluent API support)
-     */
-    public function removeUserCategoryJournal($userCategoryJournal)
-    {
-        if ($this->getUserCategoryJournals()->contains($userCategoryJournal)) {
-            $this->collUserCategoryJournals->remove($this->collUserCategoryJournals->search($userCategoryJournal));
-            if (null === $this->userCategoryJournalsScheduledForDeletion) {
-                $this->userCategoryJournalsScheduledForDeletion = clone $this->collUserCategoryJournals;
-                $this->userCategoryJournalsScheduledForDeletion->clear();
-            }
-            $this->userCategoryJournalsScheduledForDeletion[] = clone $userCategoryJournal;
-            $userCategoryJournal->setUser(null);
-        }
-
-        return $this;
-    }
-
-
-    /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this User is new, it will return
-     * an empty collection; or if this User has previously
-     * been saved, it will retrieve related UserCategoryJournals from storage.
-     *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in User.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return PropelObjectCollection|UserCategoryJournal[] List of UserCategoryJournal objects
-     */
-    public function getUserCategoryJournalsJoinCategoryJournal(
-        $criteria = null,
-        $con = null,
-        $join_behavior = Criteria::LEFT_JOIN
-    ) {
-        $query = UserCategoryJournalQuery::create(null, $criteria);
-        $query->joinWith('CategoryJournal', $join_behavior);
-
-        return $this->getUserCategoryJournals($query, $con);
-    }
-
     /**
      * Clears the current object and sets all attributes to their default values
      */
@@ -2095,11 +1755,6 @@ abstract class BaseUser extends BaseObject implements Persistent
     {
         if ($deep && !$this->alreadyInClearAllReferencesDeep) {
             $this->alreadyInClearAllReferencesDeep = true;
-            if ($this->collUserCategoryJournals) {
-                foreach ($this->collUserCategoryJournals as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
             if ($this->aGroup instanceof Persistent) {
                 $this->aGroup->clearAllReferences($deep);
             }
@@ -2110,10 +1765,6 @@ abstract class BaseUser extends BaseObject implements Persistent
             $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
 
-        if ($this->collUserCategoryJournals instanceof PropelCollection) {
-            $this->collUserCategoryJournals->clearIterator();
-        }
-        $this->collUserCategoryJournals = null;
         $this->aGroup = null;
         $this->aBatch = null;
     }

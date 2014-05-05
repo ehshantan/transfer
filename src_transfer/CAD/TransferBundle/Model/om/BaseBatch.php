@@ -14,8 +14,6 @@ use \PropelException;
 use \PropelObjectCollection;
 use \PropelPDO;
 use CAD\TransferBundle\Model\Batch;
-use CAD\TransferBundle\Model\BatchCategoryJournal;
-use CAD\TransferBundle\Model\BatchCategoryJournalQuery;
 use CAD\TransferBundle\Model\BatchPeer;
 use CAD\TransferBundle\Model\BatchQuery;
 use CAD\TransferBundle\Model\User;
@@ -62,12 +60,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
     protected $active;
 
     /**
-     * @var        PropelObjectCollection|BatchCategoryJournal[] Collection to store aggregation of BatchCategoryJournal objects.
-     */
-    protected $collBatchCategoryJournals;
-    protected $collBatchCategoryJournalsPartial;
-
-    /**
      * @var        PropelObjectCollection|User[] Collection to store aggregation of User objects.
      */
     protected $collUsers;
@@ -92,12 +84,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
      * @var        boolean
      */
     protected $alreadyInClearAllReferencesDeep = false;
-
-    /**
-     * An array of objects scheduled for deletion.
-     * @var        PropelObjectCollection
-     */
-    protected $batchCategoryJournalsScheduledForDeletion = null;
 
     /**
      * An array of objects scheduled for deletion.
@@ -340,8 +326,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
 
         if ($deep) { // also de-associate any related objects?
 
-            $this->collBatchCategoryJournals = null;
-
             $this->collUsers = null;
 
         } // if (deep)
@@ -466,23 +450,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
                 }
                 $affectedRows += 1;
                 $this->resetModified();
-            }
-
-            if ($this->batchCategoryJournalsScheduledForDeletion !== null) {
-                if (!$this->batchCategoryJournalsScheduledForDeletion->isEmpty()) {
-                    BatchCategoryJournalQuery::create()
-                        ->filterByPrimaryKeys($this->batchCategoryJournalsScheduledForDeletion->getPrimaryKeys(false))
-                        ->delete($con);
-                    $this->batchCategoryJournalsScheduledForDeletion = null;
-                }
-            }
-
-            if ($this->collBatchCategoryJournals !== null) {
-                foreach ($this->collBatchCategoryJournals as $referrerFK) {
-                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
-                        $affectedRows += $referrerFK->save($con);
-                    }
-                }
             }
 
             if ($this->usersScheduledForDeletion !== null) {
@@ -656,14 +623,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
             }
 
 
-            if ($this->collBatchCategoryJournals !== null) {
-                foreach ($this->collBatchCategoryJournals as $referrerFK) {
-                    if (!$referrerFK->validate($columns)) {
-                        $failureMap = array_merge($failureMap, $referrerFK->getValidationFailures());
-                    }
-                }
-            }
-
             if ($this->collUsers !== null) {
                 foreach ($this->collUsers as $referrerFK) {
                     if (!$referrerFK->validate($columns)) {
@@ -759,15 +718,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
         }
 
         if ($includeForeignObjects) {
-            if (null !== $this->collBatchCategoryJournals) {
-                $result['BatchCategoryJournals'] = $this->collBatchCategoryJournals->toArray(
-                    null,
-                    true,
-                    $keyType,
-                    $includeLazyLoadColumns,
-                    $alreadyDumpedObjects
-                );
-            }
             if (null !== $this->collUsers) {
                 $result['Users'] = $this->collUsers->toArray(
                     null,
@@ -936,12 +886,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
             // store object hash to prevent cycle
             $this->startCopy = true;
 
-            foreach ($this->getBatchCategoryJournals() as $relObj) {
-                if ($relObj !== $this) { // ensure that we don't try to copy a reference to ourselves
-                    $copyObj->addBatchCategoryJournal($relObj->copy($deepCopy));
-                }
-            }
-
             foreach ($this->getUsers() as $relObj) {
                 if ($relObj !== $this) { // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addUser($relObj->copy($deepCopy));
@@ -1009,277 +953,9 @@ abstract class BaseBatch extends BaseObject implements Persistent
      */
     public function initRelation($relationName)
     {
-        if ('BatchCategoryJournal' == $relationName) {
-            $this->initBatchCategoryJournals();
-        }
         if ('User' == $relationName) {
             $this->initUsers();
         }
-    }
-
-    /**
-     * Clears out the collBatchCategoryJournals collection
-     *
-     * This does not modify the database; however, it will remove any associated objects, causing
-     * them to be refetched by subsequent calls to accessor method.
-     *
-     * @return Batch The current object (for fluent API support)
-     * @see        addBatchCategoryJournals()
-     */
-    public function clearBatchCategoryJournals()
-    {
-        $this->collBatchCategoryJournals = null; // important to set this to null since that means it is uninitialized
-        $this->collBatchCategoryJournalsPartial = null;
-
-        return $this;
-    }
-
-    /**
-     * reset is the collBatchCategoryJournals collection loaded partially
-     *
-     * @return void
-     */
-    public function resetPartialBatchCategoryJournals($v = true)
-    {
-        $this->collBatchCategoryJournalsPartial = $v;
-    }
-
-    /**
-     * Initializes the collBatchCategoryJournals collection.
-     *
-     * By default this just sets the collBatchCategoryJournals collection to an empty array (like clearcollBatchCategoryJournals());
-     * however, you may wish to override this method in your stub class to provide setting appropriate
-     * to your application -- for example, setting the initial array to the values stored in database.
-     *
-     * @param boolean $overrideExisting If set to true, the method call initializes
-     *                                        the collection even if it is not empty
-     *
-     * @return void
-     */
-    public function initBatchCategoryJournals($overrideExisting = true)
-    {
-        if (null !== $this->collBatchCategoryJournals && !$overrideExisting) {
-            return;
-        }
-        $this->collBatchCategoryJournals = new PropelObjectCollection();
-        $this->collBatchCategoryJournals->setModel('BatchCategoryJournal');
-    }
-
-    /**
-     * Gets an array of BatchCategoryJournal objects which contain a foreign key that references this object.
-     *
-     * If the $criteria is not null, it is used to always fetch the results from the database.
-     * Otherwise the results are fetched from the database the first time, then cached.
-     * Next time the same method is called without $criteria, the cached collection is returned.
-     * If this Batch is new, it will return
-     * an empty collection or the current collection; the criteria is ignored on a new object.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @return PropelObjectCollection|BatchCategoryJournal[] List of BatchCategoryJournal objects
-     * @throws PropelException
-     */
-    public function getBatchCategoryJournals($criteria = null, PropelPDO $con = null)
-    {
-        $partial = $this->collBatchCategoryJournalsPartial && !$this->isNew();
-        if (null === $this->collBatchCategoryJournals || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collBatchCategoryJournals) {
-                // return empty collection
-                $this->initBatchCategoryJournals();
-            } else {
-                $collBatchCategoryJournals = BatchCategoryJournalQuery::create(null, $criteria)
-                    ->filterByBatch($this)
-                    ->find($con);
-                if (null !== $criteria) {
-                    if (false !== $this->collBatchCategoryJournalsPartial && count($collBatchCategoryJournals)) {
-                        $this->initBatchCategoryJournals(false);
-
-                        foreach ($collBatchCategoryJournals as $obj) {
-                            if (false == $this->collBatchCategoryJournals->contains($obj)) {
-                                $this->collBatchCategoryJournals->append($obj);
-                            }
-                        }
-
-                        $this->collBatchCategoryJournalsPartial = true;
-                    }
-
-                    $collBatchCategoryJournals->getInternalIterator()->rewind();
-
-                    return $collBatchCategoryJournals;
-                }
-
-                if ($partial && $this->collBatchCategoryJournals) {
-                    foreach ($this->collBatchCategoryJournals as $obj) {
-                        if ($obj->isNew()) {
-                            $collBatchCategoryJournals[] = $obj;
-                        }
-                    }
-                }
-
-                $this->collBatchCategoryJournals = $collBatchCategoryJournals;
-                $this->collBatchCategoryJournalsPartial = false;
-            }
-        }
-
-        return $this->collBatchCategoryJournals;
-    }
-
-    /**
-     * Sets a collection of BatchCategoryJournal objects related by a one-to-many relationship
-     * to the current object.
-     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
-     * and new objects from the given Propel collection.
-     *
-     * @param PropelCollection $batchCategoryJournals A Propel collection.
-     * @param PropelPDO $con Optional connection object
-     * @return Batch The current object (for fluent API support)
-     */
-    public function setBatchCategoryJournals(PropelCollection $batchCategoryJournals, PropelPDO $con = null)
-    {
-        $batchCategoryJournalsToDelete = $this->getBatchCategoryJournals(new Criteria(), $con)->diff(
-            $batchCategoryJournals
-        );
-
-
-        $this->batchCategoryJournalsScheduledForDeletion = $batchCategoryJournalsToDelete;
-
-        foreach ($batchCategoryJournalsToDelete as $batchCategoryJournalRemoved) {
-            $batchCategoryJournalRemoved->setBatch(null);
-        }
-
-        $this->collBatchCategoryJournals = null;
-        foreach ($batchCategoryJournals as $batchCategoryJournal) {
-            $this->addBatchCategoryJournal($batchCategoryJournal);
-        }
-
-        $this->collBatchCategoryJournals = $batchCategoryJournals;
-        $this->collBatchCategoryJournalsPartial = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns the number of related BatchCategoryJournal objects.
-     *
-     * @param Criteria $criteria
-     * @param boolean $distinct
-     * @param PropelPDO $con
-     * @return int             Count of related BatchCategoryJournal objects.
-     * @throws PropelException
-     */
-    public function countBatchCategoryJournals(Criteria $criteria = null, $distinct = false, PropelPDO $con = null)
-    {
-        $partial = $this->collBatchCategoryJournalsPartial && !$this->isNew();
-        if (null === $this->collBatchCategoryJournals || null !== $criteria || $partial) {
-            if ($this->isNew() && null === $this->collBatchCategoryJournals) {
-                return 0;
-            }
-
-            if ($partial && !$criteria) {
-                return count($this->getBatchCategoryJournals());
-            }
-            $query = BatchCategoryJournalQuery::create(null, $criteria);
-            if ($distinct) {
-                $query->distinct();
-            }
-
-            return $query
-                ->filterByBatch($this)
-                ->count($con);
-        }
-
-        return count($this->collBatchCategoryJournals);
-    }
-
-    /**
-     * Method called to associate a BatchCategoryJournal object to this object
-     * through the BatchCategoryJournal foreign key attribute.
-     *
-     * @param    BatchCategoryJournal $l BatchCategoryJournal
-     * @return Batch The current object (for fluent API support)
-     */
-    public function addBatchCategoryJournal(BatchCategoryJournal $l)
-    {
-        if ($this->collBatchCategoryJournals === null) {
-            $this->initBatchCategoryJournals();
-            $this->collBatchCategoryJournalsPartial = true;
-        }
-
-        if (!in_array(
-            $l,
-            $this->collBatchCategoryJournals->getArrayCopy(),
-            true
-        )
-        ) { // only add it if the **same** object is not already associated
-            $this->doAddBatchCategoryJournal($l);
-
-            if ($this->batchCategoryJournalsScheduledForDeletion and $this->batchCategoryJournalsScheduledForDeletion->contains(
-                    $l
-                )
-            ) {
-                $this->batchCategoryJournalsScheduledForDeletion->remove(
-                    $this->batchCategoryJournalsScheduledForDeletion->search($l)
-                );
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param    BatchCategoryJournal $batchCategoryJournal The batchCategoryJournal object to add.
-     */
-    protected function doAddBatchCategoryJournal($batchCategoryJournal)
-    {
-        $this->collBatchCategoryJournals[] = $batchCategoryJournal;
-        $batchCategoryJournal->setBatch($this);
-    }
-
-    /**
-     * @param    BatchCategoryJournal $batchCategoryJournal The batchCategoryJournal object to remove.
-     * @return Batch The current object (for fluent API support)
-     */
-    public function removeBatchCategoryJournal($batchCategoryJournal)
-    {
-        if ($this->getBatchCategoryJournals()->contains($batchCategoryJournal)) {
-            $this->collBatchCategoryJournals->remove($this->collBatchCategoryJournals->search($batchCategoryJournal));
-            if (null === $this->batchCategoryJournalsScheduledForDeletion) {
-                $this->batchCategoryJournalsScheduledForDeletion = clone $this->collBatchCategoryJournals;
-                $this->batchCategoryJournalsScheduledForDeletion->clear();
-            }
-            $this->batchCategoryJournalsScheduledForDeletion[] = clone $batchCategoryJournal;
-            $batchCategoryJournal->setBatch(null);
-        }
-
-        return $this;
-    }
-
-
-    /**
-     * If this collection has already been initialized with
-     * an identical criteria, it returns the collection.
-     * Otherwise if this Batch is new, it will return
-     * an empty collection; or if this Batch has previously
-     * been saved, it will retrieve related BatchCategoryJournals from storage.
-     *
-     * This method is protected by default in order to keep the public
-     * api reasonable.  You can provide public methods for those you
-     * actually need in Batch.
-     *
-     * @param Criteria $criteria optional Criteria object to narrow the query
-     * @param PropelPDO $con optional connection object
-     * @param string $join_behavior optional join type to use (defaults to Criteria::LEFT_JOIN)
-     * @return PropelObjectCollection|BatchCategoryJournal[] List of BatchCategoryJournal objects
-     */
-    public function getBatchCategoryJournalsJoinCategoryJournal(
-        $criteria = null,
-        $con = null,
-        $join_behavior = Criteria::LEFT_JOIN
-    ) {
-        $query = BatchCategoryJournalQuery::create(null, $criteria);
-        $query->joinWith('CategoryJournal', $join_behavior);
-
-        return $this->getBatchCategoryJournals($query, $con);
     }
 
     /**
@@ -1568,11 +1244,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
     {
         if ($deep && !$this->alreadyInClearAllReferencesDeep) {
             $this->alreadyInClearAllReferencesDeep = true;
-            if ($this->collBatchCategoryJournals) {
-                foreach ($this->collBatchCategoryJournals as $o) {
-                    $o->clearAllReferences($deep);
-                }
-            }
             if ($this->collUsers) {
                 foreach ($this->collUsers as $o) {
                     $o->clearAllReferences($deep);
@@ -1582,10 +1253,6 @@ abstract class BaseBatch extends BaseObject implements Persistent
             $this->alreadyInClearAllReferencesDeep = false;
         } // if ($deep)
 
-        if ($this->collBatchCategoryJournals instanceof PropelCollection) {
-            $this->collBatchCategoryJournals->clearIterator();
-        }
-        $this->collBatchCategoryJournals = null;
         if ($this->collUsers instanceof PropelCollection) {
             $this->collUsers->clearIterator();
         }

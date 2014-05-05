@@ -15,7 +15,6 @@ use \PropelPDO;
 use CAD\TransferBundle\Model\Batch;
 use CAD\TransferBundle\Model\Group;
 use CAD\TransferBundle\Model\User;
-use CAD\TransferBundle\Model\UserCategoryJournal;
 use CAD\TransferBundle\Model\UserPeer;
 use CAD\TransferBundle\Model\UserQuery;
 
@@ -61,10 +60,6 @@ use CAD\TransferBundle\Model\UserQuery;
  * @method UserQuery leftJoinBatch($relationAlias = null) Adds a LEFT JOIN clause to the query using the Batch relation
  * @method UserQuery rightJoinBatch($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Batch relation
  * @method UserQuery innerJoinBatch($relationAlias = null) Adds a INNER JOIN clause to the query using the Batch relation
- *
- * @method UserQuery leftJoinUserCategoryJournal($relationAlias = null) Adds a LEFT JOIN clause to the query using the UserCategoryJournal relation
- * @method UserQuery rightJoinUserCategoryJournal($relationAlias = null) Adds a RIGHT JOIN clause to the query using the UserCategoryJournal relation
- * @method UserQuery innerJoinUserCategoryJournal($relationAlias = null) Adds a INNER JOIN clause to the query using the UserCategoryJournal relation
  *
  * @method User findOne(PropelPDO $con = null) Return the first User matching the query
  * @method User findOneOrCreate(PropelPDO $con = null) Return the first User matching the query, or a new User object populated from the query conditions when no match is found
@@ -903,83 +898,6 @@ abstract class BaseUserQuery extends ModelCriteria
         return $this
             ->joinBatch($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'Batch', '\CAD\TransferBundle\Model\BatchQuery');
-    }
-
-    /**
-     * Filter the query by a related UserCategoryJournal object
-     *
-     * @param   UserCategoryJournal|PropelObjectCollection $userCategoryJournal the related object to use as filter
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return                 UserQuery The current query, for fluid interface
-     * @throws PropelException - if the provided filter is invalid.
-     */
-    public function filterByUserCategoryJournal($userCategoryJournal, $comparison = null)
-    {
-        if ($userCategoryJournal instanceof UserCategoryJournal) {
-            return $this
-                ->addUsingAlias(UserPeer::ID, $userCategoryJournal->getUserId(), $comparison);
-        } elseif ($userCategoryJournal instanceof PropelObjectCollection) {
-            return $this
-                ->useUserCategoryJournalQuery()
-                ->filterByPrimaryKeys($userCategoryJournal->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterByUserCategoryJournal() only accepts arguments of type UserCategoryJournal or PropelCollection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the UserCategoryJournal relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return UserQuery The current query, for fluid interface
-     */
-    public function joinUserCategoryJournal($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('UserCategoryJournal');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'UserCategoryJournal');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the UserCategoryJournal relation UserCategoryJournal object
-     *
-     * @see       useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return   \CAD\TransferBundle\Model\UserCategoryJournalQuery A secondary query class using the current class as primary query
-     */
-    public function useUserCategoryJournalQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        return $this
-            ->joinUserCategoryJournal($relationAlias, $joinType)
-            ->useQuery(
-                $relationAlias ? $relationAlias : 'UserCategoryJournal',
-                '\CAD\TransferBundle\Model\UserCategoryJournalQuery'
-            );
     }
 
     /**

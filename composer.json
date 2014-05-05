@@ -38,7 +38,7 @@
         ]
     },
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin_transfer"
     },
     "extra": {
         "symfony-app-dir": "app_transfer",

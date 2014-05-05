@@ -13,7 +13,6 @@ use \PropelException;
 use \PropelObjectCollection;
 use \PropelPDO;
 use CAD\TransferBundle\Model\Batch;
-use CAD\TransferBundle\Model\BatchCategoryJournal;
 use CAD\TransferBundle\Model\BatchPeer;
 use CAD\TransferBundle\Model\BatchQuery;
 use CAD\TransferBundle\Model\User;
@@ -30,10 +29,6 @@ use CAD\TransferBundle\Model\User;
  * @method BatchQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method BatchQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method BatchQuery innerJoin($relation) Adds a INNER JOIN clause to the query
- *
- * @method BatchQuery leftJoinBatchCategoryJournal($relationAlias = null) Adds a LEFT JOIN clause to the query using the BatchCategoryJournal relation
- * @method BatchQuery rightJoinBatchCategoryJournal($relationAlias = null) Adds a RIGHT JOIN clause to the query using the BatchCategoryJournal relation
- * @method BatchQuery innerJoinBatchCategoryJournal($relationAlias = null) Adds a INNER JOIN clause to the query using the BatchCategoryJournal relation
  *
  * @method BatchQuery leftJoinUser($relationAlias = null) Adds a LEFT JOIN clause to the query using the User relation
  * @method BatchQuery rightJoinUser($relationAlias = null) Adds a RIGHT JOIN clause to the query using the User relation
@@ -339,83 +334,6 @@ abstract class BaseBatchQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(BatchPeer::ACTIVE, $active, $comparison);
-    }
-
-    /**
-     * Filter the query by a related BatchCategoryJournal object
-     *
-     * @param   BatchCategoryJournal|PropelObjectCollection $batchCategoryJournal the related object to use as filter
-     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
-     *
-     * @return                 BatchQuery The current query, for fluid interface
-     * @throws PropelException - if the provided filter is invalid.
-     */
-    public function filterByBatchCategoryJournal($batchCategoryJournal, $comparison = null)
-    {
-        if ($batchCategoryJournal instanceof BatchCategoryJournal) {
-            return $this
-                ->addUsingAlias(BatchPeer::ID, $batchCategoryJournal->getBatchId(), $comparison);
-        } elseif ($batchCategoryJournal instanceof PropelObjectCollection) {
-            return $this
-                ->useBatchCategoryJournalQuery()
-                ->filterByPrimaryKeys($batchCategoryJournal->getPrimaryKeys())
-                ->endUse();
-        } else {
-            throw new PropelException('filterByBatchCategoryJournal() only accepts arguments of type BatchCategoryJournal or PropelCollection');
-        }
-    }
-
-    /**
-     * Adds a JOIN clause to the query using the BatchCategoryJournal relation
-     *
-     * @param     string $relationAlias optional alias for the relation
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return BatchQuery The current query, for fluid interface
-     */
-    public function joinBatchCategoryJournal($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('BatchCategoryJournal');
-
-        // create a ModelJoin object for this join
-        $join = new ModelJoin();
-        $join->setJoinType($joinType);
-        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
-        if ($previousJoin = $this->getPreviousJoin()) {
-            $join->setPreviousJoin($previousJoin);
-        }
-
-        // add the ModelJoin to the current object
-        if ($relationAlias) {
-            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
-            $this->addJoinObject($join, $relationAlias);
-        } else {
-            $this->addJoinObject($join, 'BatchCategoryJournal');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Use the BatchCategoryJournal relation BatchCategoryJournal object
-     *
-     * @see       useQuery()
-     *
-     * @param     string $relationAlias optional alias for the relation,
-     *                                   to be used as main alias in the secondary query
-     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
-     *
-     * @return   \CAD\TransferBundle\Model\BatchCategoryJournalQuery A secondary query class using the current class as primary query
-     */
-    public function useBatchCategoryJournalQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
-    {
-        return $this
-            ->joinBatchCategoryJournal($relationAlias, $joinType)
-            ->useQuery(
-                $relationAlias ? $relationAlias : 'BatchCategoryJournal',
-                '\CAD\TransferBundle\Model\BatchCategoryJournalQuery'
-            );
     }
 
     /**

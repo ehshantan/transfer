@@ -80,15 +80,6 @@ class UserTableMap extends TableMap
             null,
             null
         );
-        $this->addRelation(
-            'UserCategoryJournal',
-            'CAD\\TransferBundle\\Model\\UserCategoryJournal',
-            RelationMap::ONE_TO_MANY,
-            array('id' => 'user_id',),
-            null,
-            null,
-            'UserCategoryJournals'
-        );
     } // buildRelations()
 
 } // UserTableMap
