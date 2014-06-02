@@ -43,7 +43,7 @@ class BatchTableMap extends TableMap
         $this->setUseIdGenerator(true);
         // columns
         $this->addPrimaryKey('id', 'Id', 'BIGINT', true, null, null);
-        $this->addColumn('name', 'Name', 'VARCHAR', true, 50, null);
+        $this->addColumn('name', 'Name', 'VARCHAR', true, 20, null);
         $this->addColumn('active', 'Active', 'BOOLEAN', true, 1, true);
         // validators
     } // initialize()
@@ -53,15 +53,6 @@ class BatchTableMap extends TableMap
      */
     public function buildRelations()
     {
-        $this->addRelation(
-            'BatchCategoryJournal',
-            'CAD\\TransferBundle\\Model\\BatchCategoryJournal',
-            RelationMap::ONE_TO_MANY,
-            array('id' => 'batch_id',),
-            null,
-            null,
-            'BatchCategoryJournals'
-        );
         $this->addRelation(
             'User',
             'CAD\\TransferBundle\\Model\\User',

@@ -13,74 +13,7 @@
     </table>
     <table name="batch" phpName="Batch" idMethod="native">
         <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="name" phpName="Name" type="VARCHAR" size="50" required="true"/>
-        <column name="active" phpName="Active" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="batch_category_journal" phpName="BatchCategoryJournal" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="batch_id" phpName="BatchId" type="BIGINT" required="true"/>
-        <column name="category_journal_id" phpName="CategoryJournalId" type="BIGINT" required="true"/>
-        <column name="active" phpName="Active" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
-        <foreign-key foreignTable="batch" name="batch_category_journal_ibfk_1" onDelete="RESTRICT" onUpdate="RESTRICT">
-            <reference local="batch_id" foreign="id"/>
-        </foreign-key>
-        <foreign-key foreignTable="category_journal" name="batch_category_journal_ibfk_2" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="category_journal_id" foreign="id"/>
-        </foreign-key>
-        <index name="batch_id">
-            <index-column name="batch_id"/>
-            <index-column name="category_journal_id"/>
-        </index>
-        <index name="category_journal_id">
-            <index-column name="category_journal_id"/>
-        </index>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="category_journal" phpName="CategoryJournal" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" size="1" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="name" phpName="Name" type="VARCHAR" size="100" required="true"/>
-        <column name="reminder" phpName="Reminder" type="LONGVARCHAR" required="false"/>
-        <column name="active" phpName="Active" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="category_journal_field" phpName="CategoryJournalField" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="category_journal_id" phpName="CategoryJournalId" type="BIGINT" required="true"/>
-        <column name="name" phpName="Name" type="VARCHAR" size="50" required="true"/>
-        <column name="postfix" phpName="Postfix" type="VARCHAR" size="50" required="true"/>
-        <column name="category_journal_field_type_id" phpName="CategoryJournalFieldTypeId" type="BIGINT"
-                required="true"/>
-        <column name="value" phpName="Value" type="INTEGER" size="3" required="true" defaultValue="0"/>
-        <column name="active" phpName="Active" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
-        <foreign-key foreignTable="category_journal_field_type" name="category_journal_field_ibfk_1" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="category_journal_field_type_id" foreign="id"/>
-        </foreign-key>
-        <foreign-key foreignTable="category_journal" name="category_journal_field_ibfk_2" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="category_journal_id" foreign="id"/>
-        </foreign-key>
-        <index name="category_journal_field_type_id">
-            <index-column name="category_journal_field_type_id"/>
-        </index>
-        <index name="category_journal_id">
-            <index-column name="category_journal_id"/>
-        </index>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="category_journal_field_type" phpName="CategoryJournalFieldType" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="name" phpName="Name" type="VARCHAR" size="50" required="true"/>
+        <column name="name" phpName="Name" type="VARCHAR" size="20" required="true"/>
         <column name="active" phpName="Active" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
         <vendor type="mysql">
             <parameter name="Engine" value="InnoDB"/>
@@ -329,13 +262,6 @@
             <parameter name="Engine" value="MyISAM"/>
         </vendor>
     </table>
-    <table name="setting" phpName="Setting" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="email_cc" phpName="EmailCc" type="LONGVARCHAR" required="true"/>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
     <table name="trabsensi" phpName="Trabsensi" idMethod="native">
         <column name="idtrabsensi" phpName="Idtrabsensi" type="INTEGER" primaryKey="true" autoIncrement="true"
                 required="true"/>
@@ -374,56 +300,6 @@
         </index>
         <index name="batch_id">
             <index-column name="batch_id"/>
-        </index>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="user_category_journal" phpName="UserCategoryJournal" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="user_id" phpName="UserId" type="BIGINT" required="true"/>
-        <column name="category_journal_id" phpName="CategoryJournalId" type="BIGINT" required="true"/>
-        <column name="date" phpName="Date" type="DATE" required="true"/>
-        <column name="checked" phpName="Checked" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
-        <column name="notified" phpName="Notified" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
-        <foreign-key foreignTable="user" name="user_category_journal_ibfk_1" onDelete="RESTRICT" onUpdate="RESTRICT">
-            <reference local="user_id" foreign="id"/>
-        </foreign-key>
-        <foreign-key foreignTable="category_journal" name="user_category_journal_ibfk_2" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="category_journal_id" foreign="id"/>
-        </foreign-key>
-        <index name="category_journal_id">
-            <index-column name="category_journal_id"/>
-        </index>
-        <index name="user_id">
-            <index-column name="user_id"/>
-        </index>
-        <vendor type="mysql">
-            <parameter name="Engine" value="InnoDB"/>
-        </vendor>
-    </table>
-    <table name="user_category_journal_field" phpName="UserCategoryJournalField" idMethod="native">
-        <column name="id" phpName="Id" type="BIGINT" primaryKey="true" autoIncrement="true" required="true"/>
-        <column name="user_category_journal_id" phpName="UserCategoryJournalId" type="BIGINT" required="true"/>
-        <column name="category_journal_field_id" phpName="CategoryJournalFieldId" type="BIGINT" required="true"/>
-        <column name="value" phpName="Value" type="INTEGER" size="10" required="true" defaultValue="0"/>
-        <foreign-key foreignTable="category_journal_field" name="user_category_journal_field_ibfk_2" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="category_journal_field_id" foreign="id"/>
-        </foreign-key>
-        <foreign-key foreignTable="user_category_journal" name="user_category_journal_field_ibfk_3" onDelete="RESTRICT"
-                     onUpdate="RESTRICT">
-            <reference local="user_category_journal_id" foreign="id"/>
-        </foreign-key>
-        <index name="user_id">
-            <index-column name="category_journal_field_id"/>
-        </index>
-        <index name="category_journal_field_id">
-            <index-column name="category_journal_field_id"/>
-        </index>
-        <index name="user_category_journal_id">
-            <index-column name="user_category_journal_id"/>
         </index>
         <vendor type="mysql">
             <parameter name="Engine" value="InnoDB"/>
