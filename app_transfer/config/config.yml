@@ -52,9 +52,19 @@ swiftmailer:
 
 propel:
     dbal:
-        driver:               "%database_driver%"
-        user:                 "%database_user%"
-        password:             "%database_password%"
-        dsn:                  %database_driver%:host=%database_host%;dbname=%database_name%;charset=UTF8
-        options:              {}
-        attributes:           {}
+        default_connection:           conn1
+        connections:
+            conn1:
+                driver:               "%database_driver%"
+                user:                 "%database_user%"
+                password:             "%database_password%"
+                dsn:                  %database_driver%:host=%database_host%;dbname=%database_name%;charset=UTF8
+                options:              {}
+                attributes:           {}
+            conn2:
+                driver:               "%database_driver%"
+                user:                 "%database_user%"
+                password:             "%database_password%"
+                dsn:                  %database_driver%:host=%database_host%;dbname=%database_name2%;charset=UTF8
+                options:              {}
+                attributes:           {}

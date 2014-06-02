@@ -4,6 +4,7 @@ parameters:
     database_host: 127.0.0.1
     database_port: null
     database_name: churchin_train
+    database_name2: churchin_transfer
     database_user: churchin_trans
     database_password: bx*kF)9~GO78
     mailer_transport: smtp
