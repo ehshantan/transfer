@@ -9,7 +9,7 @@ security:
     providers:
         main:
             propel:
-                class: CAD\TransferBundle\Model\User
+                class: CAD\TransferBundle\Model\Conn2\User
                 property: username
 
     firewalls:
