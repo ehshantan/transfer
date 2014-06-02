@@ -1,0 +1,99 @@
+@font-face
+{
+    font-family: OpenLight;
+    src: url(/../../fonts/Quicksand-Light.otf);
+}
+
+#wrapper { margin: 20px; color: white;}
+#wrapper a { text-decoration: none; color: #000000; }
+#wrapper span.highlight { color: #000000; }
+
+#header { border-bottom: 0px solid #ccc; margin-bottom: 20px; }
+/*#header .top { border-bottom: 1px solid #ccc; margin-bottom: 10px; }*/
+ul.navigation { list-style: none; text-align: left; background-color: #263944}
+.navigation li { display: inline; }
+.navigation li a { display: inline-block; padding: 3px 15px; background-color: #263944; color: white;}
+.navigation li a:hover{background-color: #2e6e9e;}
+
+#footer { border-top: 0px solid #ccc; clear: both; text-align: right; padding: 10px; margin-top: 20px;}
+
+#btn{
+    color: white;
+    background-color: #1d5987;
+    border: none;
+    padding: 3px 15px;
+}
+
+*{font-family: OpenLight;  background-color: #263944;}
+
+.body{
+
+}
+
+#upload_bg { background-color: #bdc3c7 }
+#formUpload .button
+{
+    color: white;
+    background-color: #2e6e9e;
+    border: none;
+    /*box-shadow: none;*/
+    padding: 3px 15px;
+}
+
+#formUpload .button:active
+{
+    top: 1px;
+    margin-top: 1px;
+}
+
+#formUpload .text
+{
+    color: white;
+    background-color: #2e6e9e;
+    border: none;
+    /*box-shadow: none;*/
+    padding: 3px 15px;
+}
+
+#formLogin{
+    width: 200px;
+    /*background-color: #2e6e9e;*/
+    border: none;
+    padding: 3px 15px;
+    color: white;
+}
+
+#formLogin input{
+    /*border: 1px #bbbbbb solid;*/
+    margin-bottom: 3px;
+    border: none;
+    width: 200px;
+    height: 30px;
+    font-size: 17px;
+}
+
+#formLogin input[type="submit"]{
+    background-color: #2e6e9e;
+    /*width: 200px;*/
+}
+
+#formLogin input[type="submit"]:hover{
+    background-color: #00589E;
+    /*width: 200px;*/
+}
+
+/*html, body{height:100%; margin:0;padding:0}*/
+
+/*.container-fluid{*/
+    /*height:100%;*/
+    /*display:table;*/
+    /*width: 100%;*/
+    /*padding: 0;*/
+/*}*/
+
+/*.row-fluid {height: 100%; display:table-cell; vertical-align: middle;}*/
+
+/*.centering {*/
+    /*float:none;*/
+    /*margin:0 auto;*/
+/*}*/

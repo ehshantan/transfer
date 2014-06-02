@@ -1,1 +1,30 @@
-Hello {{ name }}!
+{% extends '::base.html.twig' %}
+
+{% block body %}
+
+{#<ul class="navigation">#}
+                    {#<li><a href="{{ path('CADTransferBundle_homepage') }}">Home</a></li>#}
+                    {#<li><a href="{{ path('CADTransferBundle_homepage') }}">Manage</a></li>#}
+                    {#<li><a href="{{ path('CADTransferBundle_homepage') }}">Database</a></li>#}
+                    {#<li><a href="{{ path('CADTransferBundle_homepage') }}">About</a></li>#}
+                {#</ul>#}
+
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="col-md-4 col-xs-4"></div>
+
+        <div class="col-md-4 col-xs-4">
+            <form method="post" id="formLogin">
+                <input type="text" id="username" name="_username" placeholder="Nama" style="font-style: italic" />
+                <br>
+                <input type="password" id="password" name="_password" placeholder="Password" style="font-style: italic" />
+                <br>
+                <input type="submit" value="Login">
+            </form>
+        </div>
+
+        <div class="col-md-4 col-xs-4"></div>
+    </div>
+</div>
+
+{% endblock %}
