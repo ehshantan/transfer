@@ -59,8 +59,8 @@ ul.navigation { list-style: none; text-align: left; background-color: #263944}
     width: 200px;
     /*background-color: #2e6e9e;*/
     border: none;
-    padding: 3px 15px;
     color: white;
+    margin: auto;
 }
 
 #formLogin input{
